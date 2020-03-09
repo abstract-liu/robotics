@@ -159,11 +159,11 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
-add_executable(control_example src/control_example.cpp)
-target_link_libraries(control_example ${catkin_LIBRARIES})
+add_executable(exp4 src/exp4.cpp)
+target_link_libraries(exp4 ${catkin_LIBRARIES})
 
-add_executable(velocity_control src/velocity_control.cpp)
-target_link_libraries(velocity_control ${catkin_LIBRARIES})
+add_executable(exp1_b src/exp1_b.cpp)
+target_link_libraries(exp1_b ${catkin_LIBRARIES})
 
 #############
 ## Install ##

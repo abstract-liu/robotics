@@ -56,18 +56,6 @@ CMAKE_BINARY_DIR = /home/abstract/catkin_ws/build
 #=============================================================================
 # Targets provided globally by CMake.
 
-# Special rule for the target install/strip
-install/strip: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
-	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip
-
-# Special rule for the target install/strip
-install/strip/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
-	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip/fast
-
 # Special rule for the target install
 install: preinstall
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
@@ -80,16 +68,15 @@ install/fast: preinstall/fast
 	/usr/bin/cmake -P cmake_install.cmake
 .PHONY : install/fast
 
-# Special rule for the target rebuild_cache
-rebuild_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/usr/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
-.PHONY : rebuild_cache
+# Special rule for the target list_install_components
+list_install_components:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Available install components are: \"Unspecified\""
+.PHONY : list_install_components
 
-# Special rule for the target rebuild_cache
-rebuild_cache/fast: rebuild_cache
+# Special rule for the target list_install_components
+list_install_components/fast: list_install_components
 
-.PHONY : rebuild_cache/fast
+.PHONY : list_install_components/fast
 
 # Special rule for the target install/local
 install/local: preinstall
@@ -114,15 +101,28 @@ test/fast: test
 
 .PHONY : test/fast
 
-# Special rule for the target list_install_components
-list_install_components:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Available install components are: \"Unspecified\""
-.PHONY : list_install_components
+# Special rule for the target install/strip
+install/strip: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
+	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip
 
-# Special rule for the target list_install_components
-list_install_components/fast: list_install_components
+# Special rule for the target install/strip
+install/strip/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
+	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip/fast
 
-.PHONY : list_install_components/fast
+# Special rule for the target rebuild_cache
+rebuild_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
+	/usr/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+.PHONY : rebuild_cache
+
+# Special rule for the target rebuild_cache
+rebuild_cache/fast: rebuild_cache
+
+.PHONY : rebuild_cache/fast
 
 # Special rule for the target edit_cache
 edit_cache:
@@ -198,88 +198,88 @@ moveit_ros_planning_gencfg/fast:
 .PHONY : moveit_ros_planning_gencfg/fast
 
 # Convenience name for target.
-probot_anno/probot_gazebo/CMakeFiles/control_example.dir/rule:
-	cd /home/abstract/catkin_ws/build && $(MAKE) -f CMakeFiles/Makefile2 probot_anno/probot_gazebo/CMakeFiles/control_example.dir/rule
-.PHONY : probot_anno/probot_gazebo/CMakeFiles/control_example.dir/rule
+probot_anno/probot_gazebo/CMakeFiles/exp4.dir/rule:
+	cd /home/abstract/catkin_ws/build && $(MAKE) -f CMakeFiles/Makefile2 probot_anno/probot_gazebo/CMakeFiles/exp4.dir/rule
+.PHONY : probot_anno/probot_gazebo/CMakeFiles/exp4.dir/rule
 
 # Convenience name for target.
-control_example: probot_anno/probot_gazebo/CMakeFiles/control_example.dir/rule
+exp4: probot_anno/probot_gazebo/CMakeFiles/exp4.dir/rule
 
-.PHONY : control_example
+.PHONY : exp4
 
 # fast build rule for target.
-control_example/fast:
-	cd /home/abstract/catkin_ws/build && $(MAKE) -f probot_anno/probot_gazebo/CMakeFiles/control_example.dir/build.make probot_anno/probot_gazebo/CMakeFiles/control_example.dir/build
-.PHONY : control_example/fast
+exp4/fast:
+	cd /home/abstract/catkin_ws/build && $(MAKE) -f probot_anno/probot_gazebo/CMakeFiles/exp4.dir/build.make probot_anno/probot_gazebo/CMakeFiles/exp4.dir/build
+.PHONY : exp4/fast
 
 # Convenience name for target.
-probot_anno/probot_gazebo/CMakeFiles/velocity_control.dir/rule:
-	cd /home/abstract/catkin_ws/build && $(MAKE) -f CMakeFiles/Makefile2 probot_anno/probot_gazebo/CMakeFiles/velocity_control.dir/rule
-.PHONY : probot_anno/probot_gazebo/CMakeFiles/velocity_control.dir/rule
+probot_anno/probot_gazebo/CMakeFiles/exp1_b.dir/rule:
+	cd /home/abstract/catkin_ws/build && $(MAKE) -f CMakeFiles/Makefile2 probot_anno/probot_gazebo/CMakeFiles/exp1_b.dir/rule
+.PHONY : probot_anno/probot_gazebo/CMakeFiles/exp1_b.dir/rule
 
 # Convenience name for target.
-velocity_control: probot_anno/probot_gazebo/CMakeFiles/velocity_control.dir/rule
+exp1_b: probot_anno/probot_gazebo/CMakeFiles/exp1_b.dir/rule
 
-.PHONY : velocity_control
+.PHONY : exp1_b
 
 # fast build rule for target.
-velocity_control/fast:
-	cd /home/abstract/catkin_ws/build && $(MAKE) -f probot_anno/probot_gazebo/CMakeFiles/velocity_control.dir/build.make probot_anno/probot_gazebo/CMakeFiles/velocity_control.dir/build
-.PHONY : velocity_control/fast
+exp1_b/fast:
+	cd /home/abstract/catkin_ws/build && $(MAKE) -f probot_anno/probot_gazebo/CMakeFiles/exp1_b.dir/build.make probot_anno/probot_gazebo/CMakeFiles/exp1_b.dir/build
+.PHONY : exp1_b/fast
 
-src/control_example.o: src/control_example.cpp.o
+src/exp1_b.o: src/exp1_b.cpp.o
 
-.PHONY : src/control_example.o
-
-# target to build an object file
-src/control_example.cpp.o:
-	cd /home/abstract/catkin_ws/build && $(MAKE) -f probot_anno/probot_gazebo/CMakeFiles/control_example.dir/build.make probot_anno/probot_gazebo/CMakeFiles/control_example.dir/src/control_example.cpp.o
-.PHONY : src/control_example.cpp.o
-
-src/control_example.i: src/control_example.cpp.i
-
-.PHONY : src/control_example.i
-
-# target to preprocess a source file
-src/control_example.cpp.i:
-	cd /home/abstract/catkin_ws/build && $(MAKE) -f probot_anno/probot_gazebo/CMakeFiles/control_example.dir/build.make probot_anno/probot_gazebo/CMakeFiles/control_example.dir/src/control_example.cpp.i
-.PHONY : src/control_example.cpp.i
-
-src/control_example.s: src/control_example.cpp.s
-
-.PHONY : src/control_example.s
-
-# target to generate assembly for a file
-src/control_example.cpp.s:
-	cd /home/abstract/catkin_ws/build && $(MAKE) -f probot_anno/probot_gazebo/CMakeFiles/control_example.dir/build.make probot_anno/probot_gazebo/CMakeFiles/control_example.dir/src/control_example.cpp.s
-.PHONY : src/control_example.cpp.s
-
-src/velocity_control.o: src/velocity_control.cpp.o
-
-.PHONY : src/velocity_control.o
+.PHONY : src/exp1_b.o
 
 # target to build an object file
-src/velocity_control.cpp.o:
-	cd /home/abstract/catkin_ws/build && $(MAKE) -f probot_anno/probot_gazebo/CMakeFiles/velocity_control.dir/build.make probot_anno/probot_gazebo/CMakeFiles/velocity_control.dir/src/velocity_control.cpp.o
-.PHONY : src/velocity_control.cpp.o
+src/exp1_b.cpp.o:
+	cd /home/abstract/catkin_ws/build && $(MAKE) -f probot_anno/probot_gazebo/CMakeFiles/exp1_b.dir/build.make probot_anno/probot_gazebo/CMakeFiles/exp1_b.dir/src/exp1_b.cpp.o
+.PHONY : src/exp1_b.cpp.o
 
-src/velocity_control.i: src/velocity_control.cpp.i
+src/exp1_b.i: src/exp1_b.cpp.i
 
-.PHONY : src/velocity_control.i
+.PHONY : src/exp1_b.i
 
 # target to preprocess a source file
-src/velocity_control.cpp.i:
-	cd /home/abstract/catkin_ws/build && $(MAKE) -f probot_anno/probot_gazebo/CMakeFiles/velocity_control.dir/build.make probot_anno/probot_gazebo/CMakeFiles/velocity_control.dir/src/velocity_control.cpp.i
-.PHONY : src/velocity_control.cpp.i
+src/exp1_b.cpp.i:
+	cd /home/abstract/catkin_ws/build && $(MAKE) -f probot_anno/probot_gazebo/CMakeFiles/exp1_b.dir/build.make probot_anno/probot_gazebo/CMakeFiles/exp1_b.dir/src/exp1_b.cpp.i
+.PHONY : src/exp1_b.cpp.i
 
-src/velocity_control.s: src/velocity_control.cpp.s
+src/exp1_b.s: src/exp1_b.cpp.s
 
-.PHONY : src/velocity_control.s
+.PHONY : src/exp1_b.s
 
 # target to generate assembly for a file
-src/velocity_control.cpp.s:
-	cd /home/abstract/catkin_ws/build && $(MAKE) -f probot_anno/probot_gazebo/CMakeFiles/velocity_control.dir/build.make probot_anno/probot_gazebo/CMakeFiles/velocity_control.dir/src/velocity_control.cpp.s
-.PHONY : src/velocity_control.cpp.s
+src/exp1_b.cpp.s:
+	cd /home/abstract/catkin_ws/build && $(MAKE) -f probot_anno/probot_gazebo/CMakeFiles/exp1_b.dir/build.make probot_anno/probot_gazebo/CMakeFiles/exp1_b.dir/src/exp1_b.cpp.s
+.PHONY : src/exp1_b.cpp.s
+
+src/exp4.o: src/exp4.cpp.o
+
+.PHONY : src/exp4.o
+
+# target to build an object file
+src/exp4.cpp.o:
+	cd /home/abstract/catkin_ws/build && $(MAKE) -f probot_anno/probot_gazebo/CMakeFiles/exp4.dir/build.make probot_anno/probot_gazebo/CMakeFiles/exp4.dir/src/exp4.cpp.o
+.PHONY : src/exp4.cpp.o
+
+src/exp4.i: src/exp4.cpp.i
+
+.PHONY : src/exp4.i
+
+# target to preprocess a source file
+src/exp4.cpp.i:
+	cd /home/abstract/catkin_ws/build && $(MAKE) -f probot_anno/probot_gazebo/CMakeFiles/exp4.dir/build.make probot_anno/probot_gazebo/CMakeFiles/exp4.dir/src/exp4.cpp.i
+.PHONY : src/exp4.cpp.i
+
+src/exp4.s: src/exp4.cpp.s
+
+.PHONY : src/exp4.s
+
+# target to generate assembly for a file
+src/exp4.cpp.s:
+	cd /home/abstract/catkin_ws/build && $(MAKE) -f probot_anno/probot_gazebo/CMakeFiles/exp4.dir/build.make probot_anno/probot_gazebo/CMakeFiles/exp4.dir/src/exp4.cpp.s
+.PHONY : src/exp4.cpp.s
 
 # Help Target
 help:
@@ -287,23 +287,23 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... install/strip"
 	@echo "... install"
-	@echo "... rebuild_cache"
+	@echo "... list_install_components"
 	@echo "... moveit_ros_manipulation_gencfg"
 	@echo "... moveit_ros_planning_gencfg"
 	@echo "... install/local"
 	@echo "... test"
-	@echo "... list_install_components"
-	@echo "... control_example"
-	@echo "... velocity_control"
+	@echo "... install/strip"
+	@echo "... exp4"
+	@echo "... rebuild_cache"
+	@echo "... exp1_b"
 	@echo "... edit_cache"
-	@echo "... src/control_example.o"
-	@echo "... src/control_example.i"
-	@echo "... src/control_example.s"
-	@echo "... src/velocity_control.o"
-	@echo "... src/velocity_control.i"
-	@echo "... src/velocity_control.s"
+	@echo "... src/exp1_b.o"
+	@echo "... src/exp1_b.i"
+	@echo "... src/exp1_b.s"
+	@echo "... src/exp4.o"
+	@echo "... src/exp4.i"
+	@echo "... src/exp4.s"
 .PHONY : help
 
 

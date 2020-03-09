@@ -7,10 +7,7 @@
 #include "std_msgs/Float64MultiArray.h"
 #include "controller_manager_msgs/SwitchController.h"
 #include "controller_manager_msgs/ListControllers.h"
-#include "ikfast.h"
-#include "probot_anno_manipulator_ikfast_moveit_plugin.cpp"
 
-using namespace ikfast_kinematics_plugin;
 int main(int argc, char **argv){
 
     bool ret;
@@ -20,11 +17,6 @@ int main(int argc, char **argv){
     ros::NodeHandle node_handle;
     ros::AsyncSpinner spinner(1);
     ROS_INFO_STREAM("start");
-    //创建发布者对象，用于发布位置信息，
-    //位置控制的话题名为："/probot_anno/arm_pos_controller/command"
-    //速度控制的话题名为："/probot_anno/arm_vel_controller/command"
-    //发送的数据类型均为：std_msgs::Float64MultiArray，
-    //它的创建与赋值方法在下面有，一组6个浮点数
     ros::Publisher pos_pub = node_handle.advertise<std_msgs::Float64MultiArray>("/probot_anno/arm_pos_controller/command", 100);
 
     std_msgs::Float64MultiArray init_pos;
@@ -42,7 +34,7 @@ int main(int argc, char **argv){
     int action_num = 0;
 
     while(true){
-    	cin>>action_num;
+	    std::cin >> action_num;
 	switch(action_num){
 	    case 1:{
 		 init_pos.data.at(0) = target[0][0];
@@ -74,7 +66,7 @@ int main(int argc, char **argv){
 
                  pos_pub.publish(init_pos);
 		 break;}
-	    default: cout<<"ERROR!"<<endl;	
+		 default: std::cout <<"ERROR!"<< endl;	
 			    }
    	action_num = 0;
     }
