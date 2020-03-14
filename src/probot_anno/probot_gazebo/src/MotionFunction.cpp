@@ -1,4 +1,7 @@
 #include "MotionFunction.h"
+#include <Eigen/src/Core/Matrix.h>
+#include <cmath>
+#include <complex>
 
 
 std::vector<std::vector<double>> BackwardAngle(std::vector<float> pos){
@@ -215,8 +218,14 @@ std::vector<std::vector<float>> GeneratePath( int rate, std::vector<std::vector<
 		tempAngles = BackwardAngle(pos[i]);
 		for(int j=0; j<6;j++){
 			angles[j][i] = tempAngles[0][j];
-			//ROS_INFO_STREAM("TRUEANGLE"<<j<<angles[j][i]);
 		}	
+		ROS_INFO_STREAM("TRUEANGLE1 "<<angles[0][i] - angles[0][i-1]);
+		ROS_INFO_STREAM("TRUEANGLE2 "<<angles[1][i] - angles[1][i-1]);
+		ROS_INFO_STREAM("TRUEANGLE3 "<<angles[2][i] - angles[2][i-1]);
+		ROS_INFO_STREAM("TRUEANGLE4 "<<angles[3][i] - angles[3][i-1]);
+		ROS_INFO_STREAM("TRUEANGLE5 "<<angles[4][i] - angles[4][i-1]);
+		ROS_INFO_STREAM("TRUEANGLE6 "<<angles[5][i] - angles[5][i-1]);
+		
 	}
 
 	
@@ -228,7 +237,121 @@ std::vector<std::vector<float>> GeneratePath( int rate, std::vector<std::vector<
 	return velTable;
 }
 
+Eigen::Matrix3f ComputeRot(float alpha, float beta, float gamma){
+	Eigen::Matrix3f Rot;
+	Rot << std::cos(alpha)*std::cos(beta), std::cos(alpha)*std::sin(beta)*std::sin(gamma) - std::sin(alpha)*std::cos(gamma), std::cos(alpha)*std::sin(beta)*std::cos(gamma) + std::sin(alpha)*std::sin(gamma),
+		std::sin(alpha)*std::cos(beta), std::sin(alpha)*std::sin(beta)*std::sin(gamma) + std::cos(alpha)*std::cos(gamma), std::sin(alpha)*std::sin(beta)*std::cos(gamma) - std::cos(alpha)*std::sin(gamma),
+		-std::sin(beta), std::cos(beta)*std::sin(gamma), std::cos(beta)*std::cos(gamma);
+	return Rot;
+}
 
+
+std::vector<std::vector<float>> FixedRotation(int rate, std::vector<float> pos1, std::vector<float> pos2, int pointsNum){
+
+	Eigen::Matrix3f Rot1;
+	Eigen::Matrix3f Rot2;
+	Eigen::Matrix3f Rot;
+	Rot1 = ComputeRot(pos1[5], pos1[4], pos1[3]);
+	Rot2 = ComputeRot(pos2[5], pos2[4], pos2[3]);
+	Rot = Rot2 * Rot1.inverse();
+
+	double kx, ky, kz, theta, deltaTheta;
+	theta = std::acos(( Rot(0,0)+Rot(2,2)+Rot(1,1)-1)/2 );
+	kx = (Rot(2,1)-Rot(1,2))/(2*std::sin(theta));
+	ky = (Rot(0,2)-Rot(2,0))/(2*std::sin(theta));
+	kz = (Rot(1,0)-Rot(0,1))/(2*std::sin(theta));
+	deltaTheta = 0;
+
+	double vtheta, ctheta, stheta;
+	double alpha, beta, gamma;
+
+	std::vector<std::vector<float>> pos;
+	std::vector<float> tempPose(6,0);
+	std::vector<std::vector<float>> vel(6,std::vector<float>(pointsNum+2, 0));
+	std::vector<std::vector<float>> a(6, std::vector<float>(pointsNum +2, 0));
+	std::vector<float> tf(pointsNum +1, 0);
+	
+	tempPose[0] = pos1[0];
+	tempPose[1] = pos1[1];
+	tempPose[2] = pos1[2];
+
+	pos.push_back(pos1);
+	for(int i=1; i < pointsNum+1; i++){
+		deltaTheta = theta*double(i)/double( pointsNum+1 );
+		vtheta = 1 - std::cos(deltaTheta);
+		ctheta = std::cos(deltaTheta);
+		stheta = std::sin(deltaTheta);
+		
+		Eigen::Matrix3f tempRot;
+		tempRot << kx*kx*vtheta + ctheta, kx*ky*vtheta - kz*stheta, kx*kz*vtheta + ky*stheta,
+				kx*ky*vtheta + kz*stheta, ky*ky*vtheta+ctheta, ky*kz*vtheta - kx*stheta,
+				kx*kz*vtheta - ky*stheta, ky*kz*vtheta + kx*stheta, kz*kz*vtheta + ctheta;
+		tempRot = tempRot * Rot1;
+		beta = std::atan2(-tempRot(2,0), std::sqrt(std::pow(tempRot(0,0),2) + std::pow(tempRot(1,0),2) ) );
+		alpha = std::atan2(tempRot(1,0)/std::cos(beta), tempRot(0,0)/std::cos(beta));
+		gamma = std::atan2(tempRot(2,1)/std::cos(beta), tempRot(2,2)/std::cos(beta));
+		ROS_INFO_STREAM("gamma" << gamma  <<"beta" << beta <<"alpha"<<alpha);
+
+		tempPose[3] = gamma;
+		tempPose[4] = beta;
+		tempPose[5] = alpha;
+
+		pos.push_back(tempPose);
+		for(int j=0; j<6; j++){
+			vel[j][i] = 0.005;
+			a[j][i] = 0;
+		}
+		tf[i-1] = 1;
+	}
+	tf[pointsNum] = 1;
+	pos.push_back(pos2);
+
+	std::vector<std::vector<float>> velTable;
+	velTable = GeneratePath(rate, vel, a, tf, pos);
+
+	return velTable;
+}
+
+std::vector<std::vector<float>> LineaerEuler(int rate, float tf, std::vector<float> pos1, std::vector<float> pos2){
+	
+	std::vector<float> alpha, beta, gamma;
+	
+	gamma = AngleMoveStep(rate, pos1[3], pos2[3], tf, 0, 0, 0, 0);
+	beta = AngleMoveStep(rate, pos1[4], pos2[4], tf, 0, 0, 0, 0);
+	alpha = AngleMoveStep(rate, pos1[5], pos2[5], tf, 0, 0, 0, 0);
+	gamma.push_back(0);
+	beta.push_back(0);
+	alpha.push_back(0);
+
+
+	std::vector<std::vector<float>> velTable(6, std::vector<float>(gamma.size(),0));
+	Eigen::MatrixXf invJacobi(6,0);
+	Eigen::VectorXf decartesVel(6);
+	Eigen::VectorXf angleVel(6);
+	
+	float theta[6] = {0,0,0,0,0,0};
+
+	decartesVel(0) = 0;
+	decartesVel(1) = 0;
+	decartesVel(2) = 0;
+
+
+	for(int i=0; i<gamma.size(); i++){
+		decartesVel(3) = gamma[i];
+		decartesVel(4) = beta[i];
+		decartesVel(5) = alpha[i];
+
+		invJacobi = ComputeInvJacobi(theta);
+		angleVel = invJacobi * decartesVel;
+
+		for(int j=0; j<6; j++){
+			velTable[j][i] = angleVel(j);
+			theta[j] += angleVel(j)/float(rate);
+		}
+	}
+	return velTable;
+
+}
 
 /*
 int main(void){

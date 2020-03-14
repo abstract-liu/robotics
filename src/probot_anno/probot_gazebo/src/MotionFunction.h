@@ -52,7 +52,11 @@ std::vector<float> AngleMove(int rate, std::vector<double> theta, std::vector<fl
 std::vector<std::vector<float>> GeneratePath( int rate, std::vector<std::vector<float>> vel,  std::vector<std::vector<float>> a, std::vector<float> tf,  std::vector<std::vector<float>> pos);
 
 
+Eigen::Matrix3f ComputeRot(float alpha, float beta, float gamma);
 
+std::vector<std::vector<float>> FixedRotation(int rate, std::vector<float> pos1, std::vector<float> pos2, int pointsNum);
+
+std::vector<std::vector<float>> LineaerEuler(int rate, float tf, std::vector<float> pos1, std::vector<float> pos2);
 #endif
 
 
