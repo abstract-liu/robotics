@@ -14,7 +14,7 @@
 #include "MotionFunction.cpp"
 #include <numeric>
 
-const int RATE = 20;
+const int RATE = 200;
 
 int main(int argc, char **argv){
 	//initialize robot
@@ -36,7 +36,7 @@ int main(int argc, char **argv){
   	sleep(1);
 
 
-	std::vector<std::vector<float>> velTune = {
+	std::vector<std::vector<double>> velTune = {
 		{0,0.1,0.1,0},
 		{0,0.1,0.1,0},
 		{0,0.1,0.1,0},
@@ -44,7 +44,7 @@ int main(int argc, char **argv){
 		{0,0.1,0.1,0},
 		{0,0.1,0.1,0}
 	};
-	std::vector<std::vector<float>> a ={
+	std::vector<std::vector<double>> a ={
 		{0,0.06,0.06,0},
 		{0,0.06,0.06,0},
 		{0,0.06,0.06,0},
@@ -52,45 +52,23 @@ int main(int argc, char **argv){
 		{0,0.06,0.06,0},
 		{0,0.06,0.06,0}
 	};
-	std::vector<float> tf = {8,8,8};
-	std::vector<std::vector<float>> pos = {
+	std::vector<double> tf = {16,16,16};
+	std::vector<std::vector<double>> pos = {
 		{0.2289,0,0.454,1.57,0,0},
 		{0.3,0.25,0.322,1.57,-1.57,0},
 		{0.3,0.1,0.172,1.57,-1.57,0},
 		{0.3,-0.1,0.122,1.57,-1.57,0}
 	};
-
-/*std::vector<std::vector<float>> velTune = {
-		{0,0},
-		{0,0},
-		{0,0},
-		{0,0},
-		{0,0},
-		{0,0}
-	};
-	std::vector<std::vector<float>> a ={
-		{0,0},
-		{0,0},
-		{0,0},
-		{0,0},
-		{0,0},
-		{0,0}
-	};
-	std::vector<float> tf = {8};
-	std::vector<std::vector<float>> pos = {
-		{0.2289,0,0.454,1.57,0,0},
-		{0.3,0.25,0.322,1.57,-1.57,0},
-	};
-*/
 	
-	std::vector<std::vector<float>> velTable;
+
+	std::vector<std::vector<double>> velTable;
 	velTable = GeneratePath(RATE, velTune, a, tf, pos);
 	
 	ros::Rate loopRate(RATE);
 	int cnt = 0;
 	while(ros::ok()){
 	
-	if(cnt > int(std::accumulate(tf.begin(),tf.end(),0))*RATE ){
+	if(cnt == velTable[0].size()){
 		vel.data.at(0) = 0;
   		vel.data.at(1) = 0;
   		vel.data.at(2) = 0;
@@ -109,7 +87,7 @@ int main(int argc, char **argv){
   	vel.data.at(5) = velTable[5][cnt];
  
 	vel_pub.publish(vel);
-  	ROS_INFO_STREAM("published"<<vel.data.at(0));
+  	//ROS_INFO_STREAM("published"<<vel.data.at(0));
 	cnt += 1;
 	loopRate.sleep();
 	}	

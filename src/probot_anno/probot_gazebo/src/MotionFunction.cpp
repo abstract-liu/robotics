@@ -3,15 +3,14 @@
 #include <cmath>
 #include <complex>
 
+std::vector<std::vector<double>> BackwardAngle(std::vector<double> pos){
 
-std::vector<std::vector<double>> BackwardAngle(std::vector<float> pos){
-
-	float sa = std::sin(pos[3]/2 + PI/4);
-	float ca = std::cos(pos[3]/2 + PI/4);
-	float sb = std::sin(pos[4]/2);
-	float cb = std::cos(pos[4]/2);
-	float sg = std::sin(pos[5]/2);
-	float cg = std::cos(pos[5]/2);
+	double sa = std::sin(pos[3]/2 + PI/4);
+	double ca = std::cos(pos[3]/2 + PI/4);
+	double sb = std::sin(pos[4]/2);
+	double cb = std::cos(pos[4]/2);
+	double sg = std::sin(pos[5]/2);
+	double cg = std::cos(pos[5]/2);
 	
 	ikfast_kinematics_plugin::IKFastKinematicsPlugin ik;
 	bool ret = ik.IKFastKinematicsPlugin::initialize("robot_description","manipulator","base_link","link_6",0.001);
@@ -48,18 +47,18 @@ std::vector<std::vector<double>> BackwardAngle(std::vector<float> pos){
 
 
 
-std::vector<Eigen::Matrix4f> ForwardMat(float theta[]){
+std::vector<Eigen::Matrix4f> ForwardMat(double theta[]){
 	std::vector<Eigen::Matrix4f> T;
   	for(int i = 0; i < 6; i++){
 		Eigen::Matrix4f tempT;
-    tempT = ComputeMat(thetaInit[i]+theta[i], a[i], alpha[i], d[i]);
-    if(i>0) tempT = T[i-1] * tempT;
-    T.push_back(tempT);
-  }
+    	tempT = ComputeMat(thetaInit[i]+theta[i], a[i], alpha[i], d[i]);
+    	if(i>0) tempT = T[i-1] * tempT;
+    	T.push_back(tempT);
+	}
   return T;
 }
 
-Eigen::Matrix4f ComputeMat( float theta, float a, float alpha, float d){
+Eigen::Matrix4f ComputeMat( double theta, double a, double alpha, double d){
 
 	Eigen::Matrix4f T;
   	T << cos(theta), -sin(theta), 0, a,
@@ -70,7 +69,7 @@ Eigen::Matrix4f ComputeMat( float theta, float a, float alpha, float d){
 
 }
 
-Eigen::MatrixXf ComputeJacobi(float theta[]){
+Eigen::MatrixXf ComputeJacobi(double theta[]){
 
 	Eigen::MatrixXf jacobi(6,6);
 	std::vector<Eigen::Vector3f> P;
@@ -92,7 +91,7 @@ Eigen::MatrixXf ComputeJacobi(float theta[]){
   return jacobi;
 }
 
-Eigen::MatrixXf ComputeInvJacobi(float theta[]){
+Eigen::MatrixXf ComputeInvJacobi(double theta[]){
 
 	Eigen::MatrixXf invJacobi(6,6);
 	Eigen::MatrixXf jacobi(6,6);
@@ -102,12 +101,71 @@ Eigen::MatrixXf ComputeInvJacobi(float theta[]){
 	return invJacobi;
 }
 
-void ComputeVelTab(std::vector<std::vector<float>>& velocityTab, int rate){
 
-	float theta[6] = {0,0,0,0,0,0};
+std::vector<double> ComputeEulerAngle(Eigen::MatrixXf tempRot){
+
+	std::vector<double> eulerAngle(3,0);
+	double beta, alpha, gamma;
+
+	beta = std::atan2(-tempRot(2,0), std::sqrt(std::pow(tempRot(0,0),2) + std::pow(tempRot(1,0),2) ) );
+	alpha = std::atan2(tempRot(1,0), tempRot(0,0));
+	gamma = std::atan2(tempRot(2,1), tempRot(2,2)) ;
+	
+	eulerAngle[0] = gamma - PI/2;
+	eulerAngle[1] = beta;
+	eulerAngle[2] = alpha;
+
+	return eulerAngle;
+
+}
+
+
+std::vector<double> ComputeCoef(double theta0, double theta1, double tf, double v0, double v1, double a0, double a1){
+
+	std::vector<double> coefficient(6,0);
+	coefficient[0] = theta0;
+	coefficient[1] = v0;
+	coefficient[2] = a0/2;
+	coefficient[3] = (20*theta1 - 20*theta0 - (8*v1+12*v0)*tf - (3*a0-a1)*std::pow(tf,2))/(2*std::pow(tf,3));
+	coefficient[4] = (30*theta0 - 30*theta1 +(14*v1+16*v0)*tf +(3*a0-2*a1)*std::pow(tf,2))/(2*std::pow(tf,4));
+	coefficient[5] = (12*theta1 - 12*theta0 - (6*v1+6*v0)*tf - (a0-a1)*std::pow(tf,2))/(2*std::pow(tf,5));
+
+	return coefficient;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+std::vector<std::vector<double>> ComputeExp2Vel(int rate){
+
+	double theta[6] = {0,0,0,0,0,0};
 	Eigen::MatrixXf invJacobi(6,6);
 	Eigen::VectorXf decartesVel(6);
 	Eigen::VectorXf angleVel(6);
+	std::vector<std::vector<double>> velocityTab(6, std::vector<double>(12*rate, 0));
 
 	decartesVel(1) = 0;
 	decartesVel(3) = 0;
@@ -123,7 +181,7 @@ void ComputeVelTab(std::vector<std::vector<float>>& velocityTab, int rate){
 		angleVel = invJacobi*decartesVel;
 		
 		for(int j=0; j<6; j++){
-			 velocityTab[i][j] = angleVel(j);
+			 velocityTab[j][i] = angleVel(j);
 			 theta[j] += angleVel(j)/rate;
 		}
 	}
@@ -137,7 +195,7 @@ void ComputeVelTab(std::vector<std::vector<float>>& velocityTab, int rate){
 		angleVel = invJacobi*decartesVel;
 		
 		for(int j=0;j<6;j++){
-			velocityTab[i][j] = angleVel(j);
+			velocityTab[j][i] = angleVel(j);
 			theta[j] += angleVel(j)/rate;
 		}
 	}
@@ -151,52 +209,57 @@ void ComputeVelTab(std::vector<std::vector<float>>& velocityTab, int rate){
 		angleVel = invJacobi*decartesVel;
 
 		for(int j=0; j<6; j++){
-			velocityTab[i][j] = angleVel(j);
+			velocityTab[j][i] = angleVel(j);
 			theta[j] += angleVel(j)/rate;
 		}
 	}
-
+	
+	return velocityTab;
 }
 
 
 
-std::vector<float> ComputeCoef(float theta0, float theta1, float tf, float v0, float v1, float a0, float a1){
 
-	std::vector<float> coefficient(6,0);
-	coefficient[0] = theta0;
-	coefficient[1] = v0;
-	coefficient[2] = a0/2;
-	coefficient[3] = (20*theta1 - 20*theta0 - (8*v1+12*v0)*tf - (3*a0-a1)*std::pow(tf,2))/(2*std::pow(tf,3));
-	coefficient[4] = (30*theta0 - 30*theta1 +(14*v1+16*v0)*tf +(3*a0-2*a1)*std::pow(tf,2))/(2*std::pow(tf,4));
-	coefficient[5] = (12*theta1 - 12*theta0 - (6*v1+6*v0)*tf - (a0-a1)*std::pow(tf,2))/(2*std::pow(tf,5));
 
-	return coefficient;
-}
 
-std::vector<float> AngleMoveStep(int rate, double theta0, double theta1, float tf, float v0, float v1, float a0, float a1){
 
-	std::vector<float> velocityTab(rate*tf,0);
-	std::vector<float> coef(6,0);
-	float t;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+std::vector<double> QuinticInterpolation(int rate, double theta0, double theta1, double tf, double v0, double v1, double a0, double a1){
+
+	std::vector<double> velocityTab(rate*tf,0);
+	std::vector<double> coef(6,0);
+	double t;
 
 	coef = ComputeCoef(theta0, theta1, tf, v0, v1, a0, a1);
 	
 	for(int i =0; i <rate*tf; i++){
-		t = float(i)/float(rate);
+		t = double(i)/double(rate);
 		velocityTab[i] = coef[1] + 2*coef[2]*t + 3*coef[3]*std::pow(t,2) + 4*coef[4]*std::pow(t,3) + 5*coef[5]*std::pow(t,4);
 	}
-//	ROS_INFO_STREAM("ESTIMATEANGLE"<<coef[0]+coef[1]*tf+coef[2]*std::pow(tf,2)+coef[3]*std::pow(tf,3)+coef[4]*std::pow(tf,4)+coef[5]*std::pow(tf,5));
 	return velocityTab;
 }
 
 //please note that this function will return a vector with length of rate*time+1
-std::vector<float> AngleMove(int rate, std::vector<double> theta, std::vector<float> tf, std::vector<float> v, std::vector<float> a){
+std::vector<double> Interpolation(int rate, std::vector<double> theta, std::vector<double> tf, std::vector<double> v, std::vector<double> a){
 	
 	int length = tf.size();
-	std::vector<float> velTable, tempTable;
+	std::vector<double> velTable, tempTable;
 
 	for(int i=0; i<length; i++){
-		tempTable = AngleMoveStep(rate, theta[i], theta[i+1], tf[i], v[i], v[i+1], a[i], a[i+1]);
+		tempTable = QuinticInterpolation(rate, theta[i], theta[i+1], tf[i], v[i], v[i+1], a[i], a[i+1]);
 		velTable.insert(velTable.end(), tempTable.begin(), tempTable.end());
 	}
 	velTable.push_back(v[length]);
@@ -204,13 +267,13 @@ std::vector<float> AngleMove(int rate, std::vector<double> theta, std::vector<fl
 }
 
 
-std::vector<std::vector<float>> GeneratePath( int rate, std::vector<std::vector<float>> vel,  std::vector<std::vector<float>> a, std::vector<float> tf,  std::vector<std::vector<float>> pos){
+std::vector<std::vector<double>> GeneratePath( int rate, std::vector<std::vector<double>> vel,  std::vector<std::vector<double>> a, std::vector<double> tf,  std::vector<std::vector<double>> pos){
 
 	int points = vel[0].size();
 	std::vector<std::vector<double>> angles(6, std::vector<double>(points,0));
 	std::vector<std::vector<double>> tempAngles;
-	std::vector<std::vector<float>> velTable;
-	std::vector<float> tempVel;
+	std::vector<std::vector<double>> velTable;
+	std::vector<double> tempVel;
 	
 	//FBI warning
 	for(int j=0;j<6;j++) angles[j][0] = 0;
@@ -219,117 +282,62 @@ std::vector<std::vector<float>> GeneratePath( int rate, std::vector<std::vector<
 		for(int j=0; j<6;j++){
 			angles[j][i] = tempAngles[0][j];
 		}	
-		ROS_INFO_STREAM("TRUEANGLE1 "<<angles[0][i] - angles[0][i-1]);
-		ROS_INFO_STREAM("TRUEANGLE2 "<<angles[1][i] - angles[1][i-1]);
-		ROS_INFO_STREAM("TRUEANGLE3 "<<angles[2][i] - angles[2][i-1]);
-		ROS_INFO_STREAM("TRUEANGLE4 "<<angles[3][i] - angles[3][i-1]);
-		ROS_INFO_STREAM("TRUEANGLE5 "<<angles[4][i] - angles[4][i-1]);
-		ROS_INFO_STREAM("TRUEANGLE6 "<<angles[5][i] - angles[5][i-1]);
+		ROS_INFO_STREAM("TRUEANGLE1 "<<angles[0][i]);
+		ROS_INFO_STREAM("TRUEANGLE2 "<<angles[1][i]);
+		ROS_INFO_STREAM("TRUEANGLE3 "<<angles[2][i]);
+		ROS_INFO_STREAM("TRUEANGLE4 "<<angles[3][i]);
+		ROS_INFO_STREAM("TRUEANGLE5 "<<angles[4][i]);
+		ROS_INFO_STREAM("TRUEANGLE6 "<<angles[5][i]);
 		
 	}
 
 	
 	for(int i=0; i<6; i++){
-		tempVel = AngleMove(rate, angles[i], tf, vel[i], a[i] );
+		tempVel = Interpolation(rate, angles[i], tf, vel[i], a[i] );
 		velTable.push_back(tempVel);
 	}
 
 	return velTable;
 }
 
-Eigen::Matrix3f ComputeRot(float alpha, float beta, float gamma){
-	Eigen::Matrix3f Rot;
-	Rot << std::cos(alpha)*std::cos(beta), std::cos(alpha)*std::sin(beta)*std::sin(gamma) - std::sin(alpha)*std::cos(gamma), std::cos(alpha)*std::sin(beta)*std::cos(gamma) + std::sin(alpha)*std::sin(gamma),
-		std::sin(alpha)*std::cos(beta), std::sin(alpha)*std::sin(beta)*std::sin(gamma) + std::cos(alpha)*std::cos(gamma), std::sin(alpha)*std::sin(beta)*std::cos(gamma) - std::cos(alpha)*std::sin(gamma),
-		-std::sin(beta), std::cos(beta)*std::sin(gamma), std::cos(beta)*std::cos(gamma);
-	return Rot;
-}
 
 
-std::vector<std::vector<float>> FixedRotation(int rate, std::vector<float> pos1, std::vector<float> pos2, int pointsNum){
 
-	Eigen::Matrix3f Rot1;
-	Eigen::Matrix3f Rot2;
-	Eigen::Matrix3f Rot;
-	Rot1 = ComputeRot(pos1[5], pos1[4], pos1[3]);
-	Rot2 = ComputeRot(pos2[5], pos2[4], pos2[3]);
-	Rot = Rot2 * Rot1.inverse();
 
-	double kx, ky, kz, theta, deltaTheta;
-	theta = std::acos(( Rot(0,0)+Rot(2,2)+Rot(1,1)-1)/2 );
-	kx = (Rot(2,1)-Rot(1,2))/(2*std::sin(theta));
-	ky = (Rot(0,2)-Rot(2,0))/(2*std::sin(theta));
-	kz = (Rot(1,0)-Rot(0,1))/(2*std::sin(theta));
-	deltaTheta = 0;
 
-	double vtheta, ctheta, stheta;
-	double alpha, beta, gamma;
 
-	std::vector<std::vector<float>> pos;
-	std::vector<float> tempPose(6,0);
-	std::vector<std::vector<float>> vel(6,std::vector<float>(pointsNum+2, 0));
-	std::vector<std::vector<float>> a(6, std::vector<float>(pointsNum +2, 0));
-	std::vector<float> tf(pointsNum +1, 0);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+std::vector<std::vector<double>> EulerInterp(int rate, double tf, std::vector<double> pos1, std::vector<double> pos2){
 	
-	tempPose[0] = pos1[0];
-	tempPose[1] = pos1[1];
-	tempPose[2] = pos1[2];
-
-	pos.push_back(pos1);
-	for(int i=1; i < pointsNum+1; i++){
-		deltaTheta = theta*double(i)/double( pointsNum+1 );
-		vtheta = 1 - std::cos(deltaTheta);
-		ctheta = std::cos(deltaTheta);
-		stheta = std::sin(deltaTheta);
-		
-		Eigen::Matrix3f tempRot;
-		tempRot << kx*kx*vtheta + ctheta, kx*ky*vtheta - kz*stheta, kx*kz*vtheta + ky*stheta,
-				kx*ky*vtheta + kz*stheta, ky*ky*vtheta+ctheta, ky*kz*vtheta - kx*stheta,
-				kx*kz*vtheta - ky*stheta, ky*kz*vtheta + kx*stheta, kz*kz*vtheta + ctheta;
-		tempRot = tempRot * Rot1;
-		beta = std::atan2(-tempRot(2,0), std::sqrt(std::pow(tempRot(0,0),2) + std::pow(tempRot(1,0),2) ) );
-		alpha = std::atan2(tempRot(1,0)/std::cos(beta), tempRot(0,0)/std::cos(beta));
-		gamma = std::atan2(tempRot(2,1)/std::cos(beta), tempRot(2,2)/std::cos(beta));
-		ROS_INFO_STREAM("gamma" << gamma  <<"beta" << beta <<"alpha"<<alpha);
-
-		tempPose[3] = gamma;
-		tempPose[4] = beta;
-		tempPose[5] = alpha;
-
-		pos.push_back(tempPose);
-		for(int j=0; j<6; j++){
-			vel[j][i] = 0.005;
-			a[j][i] = 0;
-		}
-		tf[i-1] = 1;
-	}
-	tf[pointsNum] = 1;
-	pos.push_back(pos2);
-
-	std::vector<std::vector<float>> velTable;
-	velTable = GeneratePath(rate, vel, a, tf, pos);
-
-	return velTable;
-}
-
-std::vector<std::vector<float>> LineaerEuler(int rate, float tf, std::vector<float> pos1, std::vector<float> pos2){
+	std::vector<double> alpha, beta, gamma;
 	
-	std::vector<float> alpha, beta, gamma;
-	
-	gamma = AngleMoveStep(rate, pos1[3], pos2[3], tf, 0, 0, 0, 0);
-	beta = AngleMoveStep(rate, pos1[4], pos2[4], tf, 0, 0, 0, 0);
-	alpha = AngleMoveStep(rate, pos1[5], pos2[5], tf, 0, 0, 0, 0);
+	gamma = QuinticInterpolation(rate, pos1[3], pos2[3], tf, 0, 0, 0, 0);
+	beta =  QuinticInterpolation(rate, pos1[4], pos2[4], tf, 0, 0, 0, 0);
+	alpha = QuinticInterpolation(rate, pos1[5], pos2[5], tf, 0, 0, 0, 0);
 	gamma.push_back(0);
 	beta.push_back(0);
 	alpha.push_back(0);
 
 
-	std::vector<std::vector<float>> velTable(6, std::vector<float>(gamma.size(),0));
+	std::vector<std::vector<double>> velTable(6, std::vector<double>(gamma.size(),0));
 	Eigen::MatrixXf invJacobi(6,0);
 	Eigen::VectorXf decartesVel(6);
 	Eigen::VectorXf angleVel(6);
 	
-	float theta[6] = {0,0,0,0,0,0};
+	double theta[6] = {0,0,0,0,0,0};
 
 	decartesVel(0) = 0;
 	decartesVel(1) = 0;
@@ -346,24 +354,54 @@ std::vector<std::vector<float>> LineaerEuler(int rate, float tf, std::vector<flo
 
 		for(int j=0; j<6; j++){
 			velTable[j][i] = angleVel(j);
-			theta[j] += angleVel(j)/float(rate);
+			theta[j] += angleVel(j)/double(rate);
 		}
 	}
 	return velTable;
 
 }
 
-/*
-int main(void){
-	std::vector<float> test;
-	std::vector<double> theta = {10,20};
-	std::vector<float> tf = {2};
-	std::vector<float> v = {10, 5};
-	std::vector<float> a = {0, 3};
 
-    test = AngleMove(10,theta,tf,v,a);
 
-	for(int i =0;i<21;i++){
-	std::cout << test[i] << std::endl;
+
+std::vector<std::vector<double>>  HitBell ( int rate, double theta[], std::vector<std::vector<double>> vel,  std::vector<std::vector<double>> a, std::vector<double> tf,  std::vector<std::vector<double>> pos){
+
+	std::vector<double> xVel, yVel, zVel;
+	
+	xVel = Interpolation(rate, pos[0], tf, vel[0], a[0]);
+	yVel = Interpolation(rate, pos[1], tf, vel[1], a[1]);
+	zVel = Interpolation(rate, pos[2], tf, vel[2], a[2]);
+
+	Eigen::MatrixXf invJacobi(6,0);
+	Eigen::VectorXf decartesVel(6);
+	Eigen::VectorXf angleVel(6);
+	
+
+	decartesVel(3) = 0;
+	decartesVel(4) = 0;
+	decartesVel(5) = 0;
+	
+	std::vector<std::vector<double>> velTable(6, std::vector<double>(xVel.size(), 0));
+
+	for(int i=0; i<xVel.size(); i++){
+		decartesVel(0) = xVel[i];
+		decartesVel(1) = yVel[i];
+		decartesVel(2) = zVel[i];
+
+		invJacobi = ComputeInvJacobi(theta);
+		angleVel = invJacobi * decartesVel;
+
+		for(int j=0; j<6; j++){
+			velTable[j][i] = angleVel(j);
+			theta[j] += angleVel(j)/double(rate);
+
+			if(angleVel(j) > 0.7 && j!= 4) ROS_INFO_STREAM("JOINT"<<j<<"OVERSPEED");
+
+
+		}
 	}
-}*/
+		
+
+	return velTable;
+
+}

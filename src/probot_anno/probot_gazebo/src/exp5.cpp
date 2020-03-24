@@ -10,7 +10,7 @@
 #include "MotionFunction.h"
 #include "MotionFunction.cpp"
 
-const int RATE = 20;
+const int RATE = 200;
 int main(int argc, char **argv) {
 
     ros::init(argc, argv, "exp5");
@@ -20,12 +20,12 @@ int main(int argc, char **argv) {
     ros::Publisher vel_pub = node_handle.advertise<std_msgs::Float64MultiArray>("/probot_anno/arm_vel_controller/command", 100);
  
 
-	std::vector<float> pos1 = {0.2289, 0, 0.454, 1.57, 0, 0};
-	std::vector<float> pos2 = {0.2289, 0, 0.454, 1.4, 0.5, 0};
+	std::vector<double> pos1 = {0.2289, 0, 0.454, 1.57, 0, 0};
+	std::vector<double> pos2 = {0.2289, 0, 0.454, 0.7, -0.8, 0.14};
 
-	std::vector<std::vector<float>> velTable;
+	std::vector<std::vector<double>> velTable;
 
-	velTable = LineaerEuler(RATE, 120, pos1, pos2);
+	velTable = EulerInterp(RATE, 10, pos1, pos2);
 
 	std_msgs::Float64MultiArray vel;
 	vel.data.push_back(0);

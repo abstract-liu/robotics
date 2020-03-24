@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
     ROS_INFO_STREAM("start");
     ros::Publisher pos_pub = node_handle.advertise<std_msgs::Float64MultiArray>("/probot_anno/arm_pos_controller/command", 100);
     
-	std::vector<std::vector<float>> pos = {{0.2, 0.2, 0.2007, 1.57, -1.57, 0},
+	std::vector<std::vector<double>> pos = {{0.2, 0.2, 0.2007, 1.57, -1.57, 0},
 	{0.15, 0.2, 0.2007, 0, 0, 0},
 	{0.3, 0, 0.122, 1.57, 0, 0},
 	{0.3, 0.25, 0.322, 1.57, -1.57, 0}

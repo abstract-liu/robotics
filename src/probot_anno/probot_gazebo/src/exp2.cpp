@@ -14,7 +14,7 @@
 #include "MotionFunction.h"
 #include "MotionFunction.cpp"
 
-const int RATE = 20;
+const int RATE = 200;
 
 int main(int argc, char **argv){
 	//initialize robot
@@ -36,15 +36,15 @@ int main(int argc, char **argv){
   	sleep(1);
 
 	//calculate velocity
-	std::vector<std::vector<float>> velocityTab(12*RATE, std::vector<float>(6,0));
-	ComputeVelTab(velocityTab, RATE);
+	std::vector<std::vector<double>> velocityTab;
+	velocityTab = ComputeExp2Vel( RATE);
 	
 	//create rate_loop
 	ros::Rate loopRate(RATE);
 	int cnt = 0;
 	while(ros::ok()){
 	
-	if(cnt>12*RATE - 1){
+	if(cnt == velocityTab[0].size()){
 		vel.data.at(0) = 0;
   		vel.data.at(1) = 0;
   		vel.data.at(2) = 0;
@@ -55,15 +55,14 @@ int main(int argc, char **argv){
 		break;
 	}
 
-	vel.data.at(0) = velocityTab[cnt][0];
-  	vel.data.at(1) = velocityTab[cnt][1];
-  	vel.data.at(2) = velocityTab[cnt][2];
-  	vel.data.at(3) = velocityTab[cnt][3];
-  	vel.data.at(4) = velocityTab[cnt][4];
-  	vel.data.at(5) = velocityTab[cnt][5];
+	vel.data.at(0) = velocityTab[0][cnt];
+	vel.data.at(1) = velocityTab[1][cnt];
+	vel.data.at(2) = velocityTab[2][cnt];
+	vel.data.at(3) = velocityTab[3][cnt];
+	vel.data.at(4) = velocityTab[4][cnt];
+	vel.data.at(5) = velocityTab[5][cnt];
  
 	vel_pub.publish(vel);
-  	ROS_INFO_STREAM("published"<<cnt);
 	cnt += 1;
 	loopRate.sleep();
 	}	

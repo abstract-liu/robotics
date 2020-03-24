@@ -7,6 +7,9 @@
 #include "std_msgs/Float64MultiArray.h"
 #include "controller_manager_msgs/SwitchController.h"
 #include "controller_manager_msgs/ListControllers.h"
+#include "MotionFunction.h"
+#include "MotionFunction.cpp"
+
 
 int main(int argc, char **argv){
 
@@ -28,10 +31,14 @@ int main(int argc, char **argv){
     init_pos.data.push_back(0);
     sleep(1);
 
-    float target[3][6] = {{0.927,-0.687,-0.396,0,1.083,0.927},
+    double target[3][6] = {
+		{0.927,-0.687,-0.396,0,1.083,0.927},
 	    {0.322,-0.855,-0.021,0,0.877,0.322},
 	    {-0.322,-0.636,-0.011,0,0.647,-0.322}};
     int action_num = 0;
+
+	std::vector<Eigen::Matrix4f> T;
+	std::vector<double> euler(3,0);
 
     while(true){
 	    std::cin >> action_num;
@@ -44,6 +51,16 @@ int main(int argc, char **argv){
    		 init_pos.data.at(4) = target[0][4];
    		 init_pos.data.at(5) = target[0][5];
 		   
+		T = ForwardMat(target[action_num - 1]);
+		euler = ComputeEulerAngle(T[5]);
+		std::cout <<"x = "<< T[5](0,3) 
+			<<", y = "<< T[5](1,3) 
+			<<", z = "<< T[5](2,3) 
+			<<", roll = "<< euler[0] 
+			<<", pitch = "<< euler[1] 
+			<<", yaw = "<< euler[2] << std::endl;
+
+
    		 pos_pub.publish(init_pos);
 		 break;}
 	     case 2:{
@@ -53,6 +70,16 @@ int main(int argc, char **argv){
                  init_pos.data.at(3) = target[1][3];
                  init_pos.data.at(4) = target[1][4];
                  init_pos.data.at(5) = target[1][5];
+				 T = ForwardMat(target[action_num - 1]);
+				 euler = ComputeEulerAngle(T[5]);
+		std::cout <<"x = "<< T[5](0,3) 
+			<<", y = "<< T[5](1,3) 
+			<<", z = "<< T[5](2,3) 
+			<<", roll = "<< euler[0] 
+			<<", pitch = "<< euler[1] 
+			<<", yaw = "<< euler[2] << std::endl;
+
+
 
                  pos_pub.publish(init_pos);
 		 break;}
@@ -63,10 +90,20 @@ int main(int argc, char **argv){
                  init_pos.data.at(3) = target[2][3];
                  init_pos.data.at(4) = target[2][4];
                  init_pos.data.at(5) = target[2][5];
+	T = ForwardMat(target[action_num - 1]);
+		euler = ComputeEulerAngle(T[5]);
+		std::cout <<"x = "<< T[5](0,3) 
+			<<", y = "<< T[5](1,3) 
+			<<", z = "<< T[5](2,3) 
+			<<", roll = "<< euler[0] 
+			<<", pitch = "<< euler[1] 
+			<<", yaw = "<< euler[2] << std::endl;
+
+
 
                  pos_pub.publish(init_pos);
 		 break;}
-		 default: std::cout <<"ERROR!"<< endl;	
+		 default: std::cout <<"ERROR!"<< std::endl;	
 			    }
    	action_num = 0;
     }
